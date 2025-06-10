@@ -1,0 +1,53 @@
+name: Build YTMusicUltimate IPA
+
+on:
+  workflow_dispatch: # Allows manual triggering
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+
+    - name: Install CocoaPods
+      run: sudo gem install cocoapods -v 1.14.3
+
+    - name: Install dependencies
+      run: |
+        cd YTMusicUltimate
+        pod install
+
+    - name: Build unsigned IPA
+      run: |
+        cd YTMusicUltimate
+        xcodebuild -workspace YTMusicUltimate.xcworkspace \
+                   -scheme YTMusicUltimate \
+                   -configuration Release \
+                   -destination 'generic/platform=iOS' \
+                   CODE_SIGN_IDENTITY="" \
+                   CODE_SIGNING_REQUIRED=NO \
+                   CODE_SIGNING_ALLOWED=NO \
+                   clean build \
+                   CONFIGURATION_BUILD_DIR=./build
+
+    - name: Package IPA
+      run: |
+        mkdir Payload
+        cp -r YTMusicUltimate/build/YTMusicUltimate.app Payload/
+        zip -r YTMusicUltimate.ipa Payload
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: YTMusicUltimate_Unsigned.ipa
+        path: YTMusicUltimate.ipa
