@@ -1,7 +1,7 @@
 name: Build YTMusicUltimate IPA
 
 on:
-  workflow_dispatch: # Allows manual triggering
+  workflow_dispatch:
   push:
     branches: [main]
 
@@ -47,7 +47,7 @@ jobs:
         zip -r YTMusicUltimate.ipa Payload
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: YTMusicUltimate_Unsigned.ipa
         path: YTMusicUltimate.ipa
