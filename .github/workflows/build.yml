@@ -18,9 +18,8 @@ jobs:
       run: |
         echo "Current directory: $PWD"
         ls -la
-        echo "Folder check:"
-        ls -d YTMusicUltimate || echo "No YTMusicUltimate folder"
-        ls -d YouTubeMusicUltimate || echo "No YouTubeMusicUltimate folder"
+        echo "Podfile location:"
+        find . -name Podfile -print || echo "No Podfile found"
 
     - name: Set up Xcode
       uses: maxim-lobanov/setup-xcode@v1
@@ -32,20 +31,20 @@ jobs:
 
     - name: Install dependencies
       run: |
-        # Auto-detect project folder
-        if [ -d "YTMusicUltimate" ]; then
+        if [ -f "Podfile" ]; then
+          pod install
+        elif [ -f "YTMusicUltimate/Podfile" ]; then
           cd YTMusicUltimate
-        elif [ -d "YouTubeMusicUltimate" ]; then
-          cd YouTubeMusicUltimate
+          pod install
+        else
+          echo "ERROR: No Podfile found!"
+          exit 1
         fi
-        pod install
 
     - name: Build unsigned IPA
       run: |
-        if [ -d "YTMusicUltimate" ]; then
+        if [ -f "YTMusicUltimate/Podfile" ]; then
           cd YTMusicUltimate
-        elif [ -d "YouTubeMusicUltimate" ]; then
-          cd YouTubeMusicUltimate
         fi
         
         xcodebuild -workspace YTMusicUltimate.xcworkspace \
@@ -60,16 +59,14 @@ jobs:
 
     - name: Package IPA
       run: |
-        if [ -d "YTMusicUltimate" ]; then
-          cp -r YTMusicUltimate/build/YTMusicUltimate.app .
-        elif [ -d "YouTubeMusicUltimate" ]; then
-          cp -r YouTubeMusicUltimate/build/YTMusicUltimate.app .
+        if [ -f "YTMusicUltimate/Podfile" ]; then
+          APP_PATH="YTMusicUltimate/build/YTMusicUltimate.app"
         else
-          cp -r build/YTMusicUltimate.app .
+          APP_PATH="build/YTMusicUltimate.app"
         fi
         
         mkdir Payload
-        mv YTMusicUltimate.app Payload/
+        cp -r "$APP_PATH" Payload/
         zip -r YTMusicUltimate.ipa Payload
 
     - name: Upload artifact
