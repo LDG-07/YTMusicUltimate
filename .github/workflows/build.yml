@@ -13,6 +13,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      
+    - name: List directory structure (debug)
+      run: ls -la
 
     - name: Set up Xcode
       uses: maxim-lobanov/setup-xcode@v1
@@ -24,12 +27,11 @@ jobs:
 
     - name: Install dependencies
       run: |
-        cd YTMusicUltimate
+        # Use the root directory instead of YTMusicUltimate subfolder
         pod install
 
     - name: Build unsigned IPA
       run: |
-        cd YTMusicUltimate
         xcodebuild -workspace YTMusicUltimate.xcworkspace \
                    -scheme YTMusicUltimate \
                    -configuration Release \
@@ -43,7 +45,7 @@ jobs:
     - name: Package IPA
       run: |
         mkdir Payload
-        cp -r YTMusicUltimate/build/YTMusicUltimate.app Payload/
+        cp -r build/YTMusicUltimate.app Payload/
         zip -r YTMusicUltimate.ipa Payload
 
     - name: Upload artifact
